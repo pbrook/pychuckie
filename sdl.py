@@ -3,9 +3,10 @@
 import pygame
 import pygame.locals as pgl
 import glrender
-import render
-import sprite
+import chuckie.render
+import sprites as sprite
 import chuckie
+import chuckie.g as g
 import logging
 import time
 import sys
@@ -29,7 +30,7 @@ class SDLUI():
         self.glr = glrender.Renderer()
         sprite.init(self.glr.load)
         self.glr.finalize()
-        self.rm = render.RenderManager()
+        self.rm = chuckie.render.RenderManager()
         self.next_tick = time.monotonic()
 
     def poll(self):
@@ -37,14 +38,14 @@ class SDLUI():
             if event.type == pgl.QUIT:
                 sys.exit(0)
             elif event.type == pgl.KEYDOWN:
-                chuckie.buttons |= keymap.get(event.key, 0)
+                g.buttons |= keymap.get(event.key, 0)
             elif event.type == pgl.KEYUP:
                 if event.key == pgl.K_ESCAPE:
                     sys.exit(0)
                 elif event.key == ord('l'):
                     chuckie.cheat = True
                 else:
-                    chuckie.buttons &= ~keymap.get(event.key, 0)
+                    g.buttons &= ~keymap.get(event.key, 0)
 
     def sound(self):
         pass
