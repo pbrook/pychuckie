@@ -16,6 +16,7 @@ class DuckActor():
         self.y = (y << 3) + 0x14
         self.mode = DUCK_BORED
         self.dir = DIR_R
+        self.dirty = True
 
     def sprite(self):
         d = self.dir
@@ -47,6 +48,7 @@ class DuckActor():
             raise Exception("Bad duck mode")
 
     def move(self):
+        self.dirty = True
         if self.mode == DUCK_BORED:
             # Figure out which way to go next
             x = self.tilex

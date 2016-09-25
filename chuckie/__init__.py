@@ -16,9 +16,6 @@ gc.collect()
 from .levelstate import LevelState
 gc.collect()
 from . import g
-import logging
-
-log = logging.getLogger(__name__)
 
 cheat = False
 
@@ -86,14 +83,12 @@ def run_game(ui):
             # if ((buttons & 0x80) != 0)
             #   goto new_game
             if ls.is_dead or (g.player.y < 0x11):
-                log.info("Dead")
                 # Died */
                 # PlayTune(0x2fa6)
                 g.player_data.lives -= 1
                 break
 
             if (ls.eggs_left == 0) or cheat:
-                log.info("Level Complete")
                 # Level complete
                 g.player_data.add_score(g.player_data.bonus)
                 # Advance to next level

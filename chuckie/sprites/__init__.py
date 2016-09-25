@@ -1,8 +1,6 @@
 import gc
 from .common import *
 gc.collect()
-from .background import *
-gc.collect()
 from .player import *
 gc.collect()
 from .bigduck import *
@@ -10,6 +8,10 @@ gc.collect()
 from .duck import *
 gc.collect()
 from .hud import *
+gc.collect()
+from .digit import *
+gc.collect()
+from .background import *
 gc.collect()
 
 def init(load):

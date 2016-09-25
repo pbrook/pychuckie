@@ -9,9 +9,11 @@ class BigDuck():
         self.frame = 0
         self.dir = 0
         self.active = active
+        self.dirty = True
 
     def move(self):
         self.frame = 1 - self.frame
+        self.dirty = True
         if not self.active:
             return
 

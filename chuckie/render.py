@@ -1,12 +1,40 @@
 from . import sprites as sprite
-import logging
 from . import g
 from .constants import *
 
-log = logging.getLogger(__name__)
+dirty = True
+
+class RenderNumber():
+    def __init__(self, x, y, n):
+        self._x = x
+        self._y = y
+        self._old = [10] * n
+        self._oldval = None
+
+    def draw(self, val):
+        if val == self._oldval and not dirty:
+            return
+        digit = len(self._old)
+        while digit > 0:
+            digit -= 1
+            newval = val % 10
+            if dirty or newval != self._old[digit]:
+                self._old[digit] = newval
+                x = self._x + digit * 5
+                y = self._y
+                sprite.nodigit.render(x, y)
+                sprite.digit[newval].render(x, y)
+            val //= 10
 
 
 class RenderManager():
+    def __init__(self):
+        self.bonus = RenderNumber(0x66, 0xe3, 3)
+        self.ticks = RenderNumber(0x91, 0xe3, 3)
+        x = 0 * 0x22 + 0x1b
+        self.score = RenderNumber(x, 0xef, 6)
+        self.lives = 0
+
     def digit(self, x, y, n):
         sprite.digit[n].render(x, y)
 
@@ -17,14 +45,20 @@ class RenderManager():
             n //= 10
 
     def hud(self):
-        x = 0 * 0x22 + 0x1b
-        self.number(x + 1, 0xef, 6, g.player_data.score)
+        self.score.draw(g.player_data.score)
 
+        x = 0 * 0x22 + 0x1b
         lives = g.player_data.lives
         if lives > 8:
             lives = 8
-        for n in range(lives):
-            sprite.hat.render(x + n * 4, 0xe7)
+        if dirty or self.lives != lives:
+            self.lives = lives
+            for n in range(8):
+                if n < lives:
+                    s = sprite.hat
+                else:
+                    s = sprite.blackhat
+                s.render(x + n * 4, 0xe7)
 
     def background(self):
         sprite.score.render(0, 0xf0)
@@ -69,11 +103,14 @@ class RenderManager():
 
     def ducks(self):
         for duck in g.ls.ducks:
+            if not (dirty or duck.dirty):
+                continue
             n = duck.sprite()
             x = duck.x
             if n >= 8:
                 x -= 8
             sprite.duck[n].render(x, duck.y)
+            duck.dirty = False
 
     def player(self):
         p = g.player
@@ -96,11 +133,13 @@ class RenderManager():
         ps[n].render(p.x, p.y)
 
     def render(self):
-        self.background()
+        global dirty
+
+        if dirty:
+            self.background()
         self.hud()
-        y = 0xe3
-        self.number(0x66, y, 3, g.player_data.bonus)
-        self.number(0x91, y, 3, g.ls.timer_ticks)
+        self.bonus.draw(g.player_data.bonus)
+        self.ticks.draw(g.ls.timer_ticks)
         self.ducks()
         self.player()
         x = g.ls.lift_x
@@ -108,8 +147,11 @@ class RenderManager():
             for y in g.ls.lift_y:
                 sprite.lift.render(x, y)
         bd = g.ls.big_duck
-        if bd.dir != 0:
-            s = sprite.bigduck_l
-        else:
-            s = sprite.bigduck_r
-        s[bd.frame].render(bd.x, bd.y)
+        if dirty or bd.dirty:
+            if bd.dir != 0:
+                s = sprite.bigduck_l
+            else:
+                s = sprite.bigduck_r
+            s[bd.frame].render(bd.x, bd.y)
+            bd.dirty = False
+        dirty = False
