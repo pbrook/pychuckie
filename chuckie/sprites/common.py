@@ -1,4 +1,7 @@
 #SpriteColor = collections.namedtuple("SpriteColor", "r g b")
+
+from .. import sprite_base
+
 class SpriteColor():
     def __init__(self, r, g, b):
         self.r = r
@@ -13,13 +16,4 @@ BLACK = SpriteColor(0, 0, 0)
 
 all_sprites = []
 
-
-class Sprite():
-    def __init__(self, w, h, color, data):
-        self.w = w
-        self.h = h
-        self.color = color
-        self.data = data
-        all_sprites.append(self)
-
-
+Sprite = sprite_base.Sprite

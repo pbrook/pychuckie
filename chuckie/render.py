@@ -1,4 +1,4 @@
-import sprites as sprite
+from . import sprites as sprite
 import logging
 from . import g
 from .constants import *

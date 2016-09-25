@@ -4,7 +4,6 @@ import pygame
 import pygame.locals as pgl
 import glrender
 import chuckie.render
-import sprites as sprite
 import chuckie
 import chuckie.g as g
 import logging
@@ -28,7 +27,6 @@ class SDLUI():
         pygame.display.set_mode((width, height), video_flags)
 
         self.glr = glrender.Renderer()
-        sprite.init(self.glr.load)
         self.glr.finalize()
         self.rm = chuckie.render.RenderManager()
         self.next_tick = time.monotonic()

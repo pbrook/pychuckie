@@ -1,5 +1,5 @@
 from .constants import *
-from .import g
+from . import g
 
 ls = None
 

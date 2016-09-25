@@ -9,6 +9,8 @@ from OpenGL.GL import shaders
 from OpenGL.GLU import *
 from OpenGL.arrays import vbo
 
+from chuckie import sprite_base
+
 vertex_code = """
 attribute vec2 position;
 attribute vec2 vert_tex;
@@ -36,26 +38,58 @@ void main()
 }
 """
 
-TEX_SIZE = 128
+all_sprites = []
 
-class GLSprite():
-    def __init__(self, context, x, y, sprite, index):
-        self.x1 = x / context.TEX_SIZE
-        self.x2 = (x + sprite.w) / context.TEX_SIZE
-        self.y1 = y / context.TEX_SIZE
-        self.y2 = (y + sprite.h) / context.TEX_SIZE
-        self.w = sprite.w
-        self.h = sprite.h
-        c = sprite.color
-        self.color = (c.r / 255, c.g / 255, c.b / 255)
-        self.index = index
-        self._context = context
+class GLSprite(sprite_base.BaseSprite):
+    def __init__(self, *args):
+        super().__init__(*args)
+        all_sprites.append(self)
+
+    def load(self, c):
+        if c._x + self.w > c.TEX_SIZE:
+            c._y += c._h
+            c._x = 0
+            c._h = 0
+        if self.h > c._h:
+            c._h = self.h
+        if c._y + c._h > c.TEX_SIZE:
+            raise Exception("Sprite texture too big")
+        stride = c.TEX_SIZE - self.w
+        dest = c._x + c._y * c.TEX_SIZE
+        src = iter(self.data)
+        for j in range(self.h):
+            for i in range(self.w):
+                if (i & 7) == 0:
+                    mask = next(src)
+                if (mask & 0x80) != 0:
+                    alpha = 0xff
+                else:
+                    alpha = 0
+                c._data[dest] = alpha
+                dest += 1
+                mask <<= 1
+            dest += stride
+        x1 = c._x / c.TEX_SIZE
+        x2 = (c._x + self.w) / c.TEX_SIZE
+        y1 = c._y / c.TEX_SIZE
+        y2 = (c._y + self.h) / c.TEX_SIZE
+        c._x += self.w
+        self.index = len(c._vertex) // 4
+        c._vertex.extend([0.0, 0.0, x1, y1])
+        c._vertex.extend([0.0, -self.h, x1, y2])
+        c._vertex.extend([self.w, -self.h, x2, y2])
+        c._vertex.extend([self.w, 0.0, x2, y1])
+        self._context = c
+        color = self.color
+        self._gl_color = (color.r / 255, color.g / 255, color.b / 255)
 
     def render(self, x, y):
         c = self._context
         glUniform2f(c._param_offset, x, y);
-        glUniform3fv(c._param_color, 1, self.color)
+        glUniform3fv(c._param_color, 1, self._gl_color)
         glDrawArrays(GL_TRIANGLE_FAN, self.index, 4)
+
+sprite_base.Sprite = GLSprite
 
 class Renderer():
     TEX_SIZE = 128
@@ -66,41 +100,6 @@ class Renderer():
         self._h = 0
         self._data = bytearray(self.TEX_SIZE * self.TEX_SIZE)
         self._vertex = []
-        self._vertex_count = 0
-
-    def load(self, sprite):
-        if self._x + sprite.w > self.TEX_SIZE:
-            self._y += self._h
-            self._x = 0
-            self._h = 0
-        if sprite.h > self._h:
-            self._h = sprite.h
-        if self._y + self._h > self.TEX_SIZE:
-            raise Exception("Sprite texture too big")
-        stride = self.TEX_SIZE - sprite.w
-        dest = self._x + self._y * self.TEX_SIZE
-        src = iter(sprite.data)
-        for j in range(sprite.h):
-            for i in range(sprite.w):
-                if (i & 7) == 0:
-                    mask = next(src)
-                if (mask & 0x80) != 0:
-                    alpha = 0xff
-                else:
-                    alpha = 0
-                self._data[dest] = alpha
-                dest += 1
-                mask <<= 1
-            dest += stride
-        index = len(self._vertex)
-        t = GLSprite(self, self._x, self._y, sprite, self._vertex_count)
-        self._vertex.extend([0.0, 0.0, t.x1, t.y1])
-        self._vertex.extend([0.0, -t.h, t.x1, t.y2])
-        self._vertex.extend([t.w, -t.h, t.x2, t.y2])
-        self._vertex.extend([t.w, 0.0, t.x2, t.y1])
-        self._vertex_count += 4
-        self._x += sprite.w
-        return t.render
 
     def _setup_shaders(self):
         vertex = shaders.compileShader(vertex_code, GL_VERTEX_SHADER)
@@ -114,6 +113,8 @@ class Renderer():
         self._param_tex = glGetUniformLocation(program, "tex")
 
     def finalize(self):
+        for sprite in all_sprites:
+            sprite.load(self)
         glDisable(GL_DEPTH_TEST)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
