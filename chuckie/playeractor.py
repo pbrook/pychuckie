@@ -52,12 +52,10 @@ class PlayerActor():
                 return True
             if self.move_y >= 0:
                 return False
-            x = self.tilex - 1
             y += 1
             return ls.read_tile(x, y) == TILE_WALL
         # Moving Right
-        tmp = self.x
-        if tmp > 0x98:
+        if self.x > 0x98:
             return True
         if self.partial_x < 5:
             return False
@@ -74,7 +72,6 @@ class PlayerActor():
             return True
         if self.move_y >= 0:
             return False
-        x = self.tilex + 1
         y += 1
         return (ls.read_tile(x, y) == 1)
 
@@ -117,15 +114,14 @@ class PlayerActor():
             ls.bonus_hold = 14
 
     def grab_ladder(self, want_move):
-        tmp = self.partial_x + self.move_x
-        if tmp != 3:
+        if self.partial_x + self.move_x != 3:
             return
         if want_move == 0:
             return
+        x = self.tilex
+        y = self.tiley
         if want_move > 0:
-            x = self.tilex
-            y = self.tiley + 1
-            if not ls.check_tile(x, y, TILE_LADDER):
+            if not ls.check_tile(x, y + 1, TILE_LADDER):
                 if self.partial_y >= 4:
                     y += 1
                 if not ls.check_tile(x, y, TILE_LADDER):
@@ -136,13 +132,9 @@ class PlayerActor():
                 self.move_y += 1
             return
 
-        x = self.tilex
-        y = self.tiley
         if not ls.check_tile(x, y, TILE_LADDER):
             return
-        x = self.tilex
-        y = self.tiley + 1
-        if not ls.check_tile(x, y, TILE_LADDER):
+        if not ls.check_tile(x, y + 1, TILE_LADDER):
             return
         self.mode = PLAYER_CLIMB
         tmp = self.partial_y + self.move_y
@@ -160,11 +152,8 @@ class PlayerActor():
         tmp = ls.lift_y[0]
         if (tmp > y1) or (tmp < y2):
             tmp = ls.lift_y[1]
-            if tmp != y1:
-                if tmp >= y1:
-                    return
-                if tmp < y2:
-                    return
+            if (tmp > y1) or (tmp < y2):
+                return
             if ls.current_lift == 0:
                 tmp += 1
         elif ls.current_lift != 0:
@@ -190,22 +179,18 @@ class PlayerActor():
             if self.mode == PLAYER_CLIMB:
                 return
 
+        x = self.tilex
+        y = self.tiley
         tmp = self.move_y + self.partial_y
         if tmp == 0:
-            x = self.tilex
-            y = self.tiley - 1
-            if ls.check_tile(x, y, TILE_WALL):
+            if ls.check_tile(x, y - 1, TILE_WALL):
                 self.mode = PLAYER_WALK
         elif tmp > 0:
             if tmp == 8:
-                x = self.tilex
-                y = self.tiley
                 if ls.check_tile(x, y, TILE_WALL):
                     self.mode = PLAYER_WALK
         else:
-            x = self.tilex
-            y = self.tiley - 1
-            if ls.check_tile(x, y, TILE_WALL):
+            if ls.check_tile(x, y - 1, TILE_WALL):
                 self.mode = PLAYER_WALK
                 self.move_y = -self.partial_y
 
@@ -239,6 +224,8 @@ class PlayerActor():
         if g.buttons & BUTTON_UP:
             self.move_y += 1
         self.move_y <<= 1
+        x = self.tilex
+        y = self.tiley
         if self.mode == PLAYER_JUMP:
             self.jump()
         elif self.mode == PLAYER_FALL:
@@ -255,14 +242,10 @@ class PlayerActor():
                 self.move_y = -(tmp + 1)
             tmp = self.move_y + self.partial_y
             if tmp == 0:
-                x = self.tilex
-                y = self.tiley - 1
-                if ls.check_tile(x, y, TILE_WALL):
+                if ls.check_tile(x, y - 1, TILE_WALL):
                     self.mode = PLAYER_WALK
             elif tmp < 0:
-                x = self.tilex
-                y = self.tiley - 1
-                if ls.check_tile(x, y, TILE_WALL):
+                if ls.check_tile(x, y - 1, TILE_WALL):
                     self.mode = PLAYER_WALK
                     self.move_y = -self.partial_y
         elif self.mode == PLAYER_CLIMB:
@@ -270,23 +253,17 @@ class PlayerActor():
                 self.start_jump()
             else:
                 if (self.move_x != 0) and (self.partial_y == 0):
-                    x = self.tilex
-                    y = self.tiley - 1
-                    if ls.check_tile(x, y, TILE_WALL):
+                    if ls.check_tile(x, y - 1, TILE_WALL):
                         self.move_y = 0
                         self.mode = PLAYER_WALK
                 if self.mode != PLAYER_WALK:
                     self.move_x = 0
                     if (self.move_y != 0) and (self.partial_y == 0):
                         if self.move_y >= 0:
-                            x = self.tilex
-                            y = self.tiley + 2
-                            if not ls.check_tile(x, y, TILE_LADDER):
+                            if not ls.check_tile(x, y + 2, TILE_LADDER):
                                 self.move_y = 0
                         else:
-                            x = self.tilex
-                            y = self.tiley - 1
-                            if not ls.check_tile(x, y, TILE_LADDER):
+                            if not ls.check_tile(x, y - 1, TILE_LADDER):
                                 self.move_y = 0
                 self.face = 0
         elif self.mode == PLAYER_LIFT:
@@ -308,9 +285,9 @@ class PlayerActor():
             if g.buttons & BUTTON_JUMP:
                 self.start_jump()
             else:
+                x = self.tilex
                 if self.move_y != 0:
                     if self.partial_x == 3:
-                        x = self.tilex
                         if self.move_y >= 0:
                             y = self.tiley + 2
                         else:
@@ -321,7 +298,6 @@ class PlayerActor():
                 if self.mode == PLAYER_WALK:
                     self.move_y = 0
                     tmp = self.partial_x + self.move_x
-                    x = self.tilex
                     if tmp < 0:
                         x -= 1
                     elif tmp >= 8:
