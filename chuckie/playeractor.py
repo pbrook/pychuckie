@@ -15,8 +15,8 @@ class PlayerActor():
         # FIXME
         self.tilex = 7
         self.tiley = 2
-        self.partial_x = 7
-        self.partial_y = 0
+        self.px = 7
+        self.py = 0
         self.mode = PLAYER_WALK
         self.face = 1
         self.button_ack = 0x1f
@@ -35,14 +35,14 @@ class PlayerActor():
             # Moving Left
             if self.x == 0:
                 return True
-            if self.partial_x >= 2:
+            if self.px >= 2:
                 return False
             if self.move_y == 2:
                 return False
 
             x = self.tilex - 1
             y = self.tiley
-            tmp = self.partial_y + self.move_y
+            tmp = self.py + self.move_y
             if tmp < 0:
                 y -= 1
             if tmp >= 8:
@@ -57,13 +57,13 @@ class PlayerActor():
         # Moving Right
         if self.x > 0x98:
             return True
-        if self.partial_x < 5:
+        if self.px < 5:
             return False
         if self.move_y == 2:
             return False
         x = self.tilex + 1
         y = self.tiley
-        tmp = self.partial_y + self.move_y
+        tmp = self.py + self.move_y
         if tmp < 0:
             y -= 1
         elif tmp >= 8:
@@ -77,23 +77,23 @@ class PlayerActor():
 
     def animate(self):
         self.x += self.move_x
-        tmp = self.partial_x + self.move_x
+        tmp = self.px + self.move_x
         if tmp < 0:
             self.tilex -= 1
         if tmp >= 8:
             self.tilex += 1
-        self.partial_x = tmp & 7
+        self.px = tmp & 7
 
         self.y += self.move_y
-        tmp = self.partial_y + self.move_y
+        tmp = self.py + self.move_y
         if tmp < 0:
             self.tiley -= 1
         if tmp >= 8:
             self.tiley += 1
-        self.partial_y = tmp & 7
+        self.py = tmp & 7
         x = self.tilex
         y = self.tiley
-        if self.partial_y >= 4:
+        if self.py >= 4:
             y += 1
         if ls.check_tile(x, y, TILE_EGG):
             # Got egg
@@ -114,7 +114,7 @@ class PlayerActor():
             ls.bonus_hold = 14
 
     def grab_ladder(self, want_move):
-        if self.partial_x + self.move_x != 3:
+        if self.px + self.move_x != 3:
             return
         if want_move == 0:
             return
@@ -122,12 +122,12 @@ class PlayerActor():
         y = self.tiley
         if want_move > 0:
             if not ls.check_tile(x, y + 1, TILE_LADDER):
-                if self.partial_y >= 4:
+                if self.py >= 4:
                     y += 1
                 if not ls.check_tile(x, y, TILE_LADDER):
                     return
             self.mode = PLAYER_CLIMB
-            tmp = self.partial_y + self.move_y
+            tmp = self.py + self.move_y
             if tmp & 1:
                 self.move_y += 1
             return
@@ -137,7 +137,7 @@ class PlayerActor():
         if not ls.check_tile(x, y + 1, TILE_LADDER):
             return
         self.mode = PLAYER_CLIMB
-        tmp = self.partial_y + self.move_y
+        tmp = self.py + self.move_y
         if tmp & 1:
             self.move_y -= 1
 
@@ -181,7 +181,7 @@ class PlayerActor():
 
         x = self.tilex
         y = self.tiley
-        tmp = self.move_y + self.partial_y
+        tmp = self.move_y + self.py
         if tmp == 0:
             if ls.check_tile(x, y - 1, TILE_WALL):
                 self.mode = PLAYER_WALK
@@ -192,7 +192,7 @@ class PlayerActor():
         else:
             if ls.check_tile(x, y - 1, TILE_WALL):
                 self.mode = PLAYER_WALK
-                self.move_y = -self.partial_y
+                self.move_y = -self.py
 
         self.hit_lift()
         if self.mode == PLAYER_LIFT:
@@ -240,25 +240,25 @@ class PlayerActor():
                 if tmp > 3:
                     tmp = 3
                 self.move_y = -(tmp + 1)
-            tmp = self.move_y + self.partial_y
+            tmp = self.move_y + self.py
             if tmp == 0:
                 if ls.check_tile(x, y - 1, TILE_WALL):
                     self.mode = PLAYER_WALK
             elif tmp < 0:
                 if ls.check_tile(x, y - 1, TILE_WALL):
                     self.mode = PLAYER_WALK
-                    self.move_y = -self.partial_y
+                    self.move_y = -self.py
         elif self.mode == PLAYER_CLIMB:
             if (g.buttons & BUTTON_JUMP) != 0:
                 self.start_jump()
             else:
-                if (self.move_x != 0) and (self.partial_y == 0):
+                if (self.move_x != 0) and (self.py == 0):
                     if ls.check_tile(x, y - 1, TILE_WALL):
                         self.move_y = 0
                         self.mode = PLAYER_WALK
                 if self.mode != PLAYER_WALK:
                     self.move_x = 0
-                    if (self.move_y != 0) and (self.partial_y == 0):
+                    if (self.move_y != 0) and (self.py == 0):
                         if self.move_y >= 0:
                             if not ls.check_tile(x, y + 2, TILE_LADDER):
                                 self.move_y = 0
@@ -287,7 +287,7 @@ class PlayerActor():
             else:
                 x = self.tilex
                 if self.move_y != 0:
-                    if self.partial_x == 3:
+                    if self.px == 3:
                         if self.move_y >= 0:
                             y = self.tiley + 2
                         else:
@@ -297,7 +297,7 @@ class PlayerActor():
                             self.mode = PLAYER_CLIMB
                 if self.mode == PLAYER_WALK:
                     self.move_y = 0
-                    tmp = self.partial_x + self.move_x
+                    tmp = self.px + self.move_x
                     if tmp < 0:
                         x -= 1
                     elif tmp >= 8:
@@ -305,7 +305,7 @@ class PlayerActor():
                     y = self.tiley - 1
                     if not ls.check_tile(x, y, TILE_WALL):
                         # Walk off edge
-                        n = (self.move_x + self.partial_x) & 7
+                        n = (self.move_x + self.px) & 7
                         if n < 4:
                             x = 1
                             y = 1
