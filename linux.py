@@ -1,8 +1,12 @@
 #! /usr/bin/env python3
 
+import sys
+import ugfx_linux
+sys.modules['ugfx'] = ugfx_linux
+
 import pygame
 import pygame.locals as pgl
-import glrender
+import raster
 import chuckie.render
 import chuckie
 import chuckie.run
@@ -21,16 +25,20 @@ keymap = {
 
 class SDLUI():
     def __init__(self):
-        width = 640
-        height = 480
+        width = 320
+        height = 240
         pygame.init()
-        video_flags = pgl.OPENGL | pgl.DOUBLEBUF
+        #video_flags = pgl.OPENGL | pgl.DOUBLEBUF
+        video_flags = 0
         pygame.display.set_mode((width, height), video_flags)
 
-        self.glr = glrender.Renderer()
-        self.glr.finalize()
+        ugfx_linux.init()
         self.rm = chuckie.render.RenderManager()
+        self.raster = raster.RasterTile()
         self.next_tick = time.monotonic()
+
+    def start_level(self):
+        self.rm.start_level()
 
     def poll(self):
         for event in pygame.event.get():
@@ -42,7 +50,7 @@ class SDLUI():
                 if event.key == pgl.K_ESCAPE:
                     sys.exit(0)
                 elif event.key == ord('l'):
-                    chuckie.cheat = True
+                    g.cheat = True
                 else:
                     g.buttons &= ~keymap.get(event.key, 0)
 
@@ -57,11 +65,9 @@ class SDLUI():
             if delta > 0:
                 time.sleep(delta)
             self.next_tick += 1.0 / 30
-        self.glr.render(self.rm.render)
+        self.rm.render()
+        self.raster.raster()
         pygame.display.flip()
-
-    def start_level(self):
-        self.rm.start_level()
 
 def main():
     logging.basicConfig(level=logging.DEBUG)

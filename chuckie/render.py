@@ -4,6 +4,39 @@ from .constants import *
 
 dirty = True
 
+g.moblist = []
+
+class MOB():
+    def __init__(self):
+        g.moblist.append(self)
+        self.sprite = None
+
+    def _touch(self):
+        tilex = self.x >> 3
+        tiley = self.y >> 3
+        partial_x = self.x & 7
+        partial_y = self.y & 7
+        w = (self.sprite.w + 7 + partial_x) >> 3
+        h = (self.sprite.h + 7 + 7 - partial_y) >> 3
+        if tilex + w > 20:
+            w = 20 - tilex
+        for j in range(tiley, tiley - h, -1):
+            if (j < 0) or (j >= 26):
+                continue
+            offset = tilex + j * 20
+            for i in range(w):
+                g.dirty_tile[offset + i] = True
+
+    def update(self, sprite, x, y):
+        if self.sprite is not None:
+            if self.x == x and self.y == y and self.sprite == sprite:
+                return
+            self._touch()
+        self.sprite = sprite
+        self.x = x
+        self.y = y
+        self._touch()
+
 class RenderNumber():
     def __init__(self, x, y, n):
         self._x = x
@@ -45,8 +78,6 @@ class RenderManager():
             n //= 10
 
     def hud(self):
-        self.score.draw(g.player_data.score)
-
         x = 0 * 0x22 + 0x1b
         lives = g.player_data.lives
         if lives > 8:
@@ -101,17 +132,6 @@ class RenderManager():
             s = sprite.cage_closed
         s.render(0, 0xdc)
 
-    def ducks(self):
-        for duck in g.ls.ducks:
-            if not (dirty or duck.dirty):
-                continue
-            n = duck.sprite()
-            x = duck.x
-            if n >= 8:
-                x -= 8
-            sprite.duck[n].render(x, duck.y)
-            duck.dirty = False
-
     def player(self):
         p = g.player
         face = p.face
@@ -130,7 +150,20 @@ class RenderManager():
         else:
             if p.move_y == 0:
                 n = 0
-        ps[n].render(p.x, p.y)
+        self._player_mob.update(ps[n], p.x, p.y)
+
+    def start_level(self):
+        for n in range(len(g.dirty_tile)):
+            g.dirty_tile[n] = True
+
+        g.moblist.clear()
+        for duck in g.ls.ducks:
+            duck.mob = MOB()
+            duck.update()
+        bd = g.ls.big_duck
+        bd.mob = MOB()
+        self._player_mob = MOB()
+        self._lift_mob = [MOB(), MOB()]
 
     def render(self):
         global dirty
@@ -138,20 +171,12 @@ class RenderManager():
         if dirty:
             self.background()
         self.hud()
+        self.score.draw(g.player_data.score)
         self.bonus.draw(g.player_data.bonus)
         self.ticks.draw(g.ls.timer_ticks)
-        self.ducks()
         self.player()
         x = g.ls.lift_x
         if x is not None:
-            for y in g.ls.lift_y:
-                sprite.lift.render(x, y)
-        bd = g.ls.big_duck
-        if dirty or bd.dirty:
-            if bd.dir != 0:
-                s = sprite.bigduck_l
-            else:
-                s = sprite.bigduck_r
-            s[bd.frame].render(bd.x, bd.y)
-            bd.dirty = False
+            for n in range(2):
+                self._lift_mob[n].update(sprite.lift, x, g.ls.lift_y[n])
         dirty = False

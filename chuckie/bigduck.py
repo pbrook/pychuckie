@@ -1,4 +1,5 @@
 from . import g
+from . import sprites
 
 class BigDuck():
     def __init__(self, active):
@@ -9,11 +10,17 @@ class BigDuck():
         self.frame = 0
         self.dir = 0
         self.active = active
-        self.dirty = True
 
     def move(self):
+        self._do_move()
+        if self.dir != 0:
+            s = sprites.bigduck_l
+        else:
+            s = sprites.bigduck_r
+        self.mob.update(s[self.frame], self.x, self.y)
+
+    def _do_move(self):
         self.frame = 1 - self.frame
-        self.dirty = True
         if not self.active:
             return
 

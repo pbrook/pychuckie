@@ -4,5 +4,3 @@ class BaseSprite():
         self.h = h
         self.color = color
         self.data = data
-
-Sprite = BaseSprite

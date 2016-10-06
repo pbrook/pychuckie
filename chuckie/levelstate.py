@@ -137,9 +137,11 @@ class LevelState():
         return (self.levelmap[x + y * 20] & which) != 0
 
     def set_tile(self, x, y, val):
-        self.levelmap[x + y * 20] |= val
+        n = x + y * 20
+        self.levelmap[n] |= val
+        g.dirty_tile[n] = True
 
     def clear_tile(self, x, y):
-        self.levelmap[x + y * 20] = 0
-
-
+        n = x + y * 20
+        self.levelmap[n] = 0
+        g.dirty_tile[n] = True

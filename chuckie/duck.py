@@ -1,4 +1,5 @@
 from .constants import *
+from . import sprites
 from . import g
 
 def multiple_bits(mask):
@@ -47,8 +48,15 @@ class DuckActor():
         else:
             raise Exception("Bad duck mode")
 
+    def update(self):
+        n = self.sprite()
+        x = self.x
+        if n >= 8:
+            x -= 8
+        s = sprites.duck[n]
+        self.mob.update(s, x, self.y)
+
     def move(self):
-        self.dirty = True
         if self.mode == DUCK_BORED:
             # Figure out which way to go next
             x = self.tilex
@@ -100,28 +108,27 @@ class DuckActor():
                 self.mode = DUCK_BORED
             else:
                 self.mode += 1
-            return
-        # Walking
-        if self.mode == DUCK_STEP:
-            self.mode = DUCK_BORED
-            flag = 1
         else:
-            self.mode = DUCK_STEP
-            flag = 0
+            # Walking
+            if self.mode == DUCK_STEP:
+                self.mode = DUCK_BORED
+                flag = 1
+            else:
+                self.mode = DUCK_STEP
+                flag = 0
 
-        if self.dir == DIR_L:
-            self.x -= 4
-            self.tilex -= flag
-        elif self.dir == DIR_R:
-            self.x += 4
-            self.tilex += flag
-        elif self.dir == DIR_UP:
-            self.y += 4
-            self.tiley += flag
-        elif self.dir == DIR_DOWN:
-            self.y -= 4
-            self.tiley -= flag
-        else:
-            raise Exception("Bad duck direction")
-
-
+            if self.dir == DIR_L:
+                self.x -= 4
+                self.tilex -= flag
+            elif self.dir == DIR_R:
+                self.x += 4
+                self.tilex += flag
+            elif self.dir == DIR_UP:
+                self.y += 4
+                self.tiley += flag
+            elif self.dir == DIR_DOWN:
+                self.y -= 4
+                self.tiley -= flag
+            else:
+                raise Exception("Bad duck direction")
+        self.update()

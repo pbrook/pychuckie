@@ -1,3 +1,9 @@
+### Author: Paul Brook
+### Description:
+### Category: Games
+### License: GPLv3
+### reboot-before-run: true
+
 import raster
 import chuckie.render
 import chuckie

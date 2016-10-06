@@ -124,7 +124,7 @@ class PlayerActor():
             if not ls.check_tile(x, y + 1, TILE_LADDER):
                 if self.py >= 4:
                     y += 1
-                if not ls.check_tile(x, y, TILE_LADDER):
+                if not ls.check_tile(x, y + 1, TILE_LADDER):
                     return
             self.mode = PLAYER_CLIMB
             tmp = self.py + self.move_y
