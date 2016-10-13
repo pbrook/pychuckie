@@ -126,11 +126,6 @@ class RenderManager():
                     s = None
                 if s is not None:
                     s.render(x << 3, (y << 3) | 7)
-        if g.ls.big_duck.active:
-            s = sprite.cage_open
-        else:
-            s = sprite.cage_closed
-        s.render(0, 0xdc)
 
     def player(self):
         p = g.player
@@ -162,6 +157,13 @@ class RenderManager():
             duck.update()
         bd = g.ls.big_duck
         bd.mob = MOB()
+        self._cage_mob = MOB()
+        if bd.active:
+            s = sprite.cage_open
+        else:
+            s = sprite.cage_closed
+        self._cage_mob.update(s, 0, 0xdc)
+        s.render(0, 0xdc)
         self._player_mob = MOB()
         self._lift_mob = [MOB(), MOB()]
 
