@@ -111,22 +111,6 @@ class RenderManager():
         self.digit(0x75, y, 0)
         sprite.time.render(0x7e, y + 1)
 
-        for x in range(20):
-            for y in range(25):
-                t = g.ls.read_tile(x, y)
-                if (t & TILE_LADDER) != 0:
-                    s = sprite.ladder
-                elif (t & TILE_WALL) != 0:
-                    s = sprite.wall
-                elif (t & TILE_EGG) != 0:
-                    s = sprite.egg
-                elif (t & TILE_GRAIN) != 0:
-                    s = sprite.grain
-                else:
-                    s = None
-                if s is not None:
-                    s.render(x << 3, (y << 3) | 7)
-
     def player(self):
         p = g.player
         face = p.face

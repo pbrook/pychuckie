@@ -7,6 +7,7 @@
 import raster
 import chuckie.render
 import chuckie
+import chuckie.run
 import chuckie.g as g
 
 import ugfx
@@ -22,13 +23,14 @@ keymap = {
     "BTN_B": chuckie.BUTTON_JUMP,
 }
 
-class Wibble():
+class TildaUI():
     def __init__(self):
         ugfx.init()
         if ugfx.backlight() == 0:
             ugfx.power_mode(ugfx.POWER_ON)
         ugfx.backlight(70)
         self.rm = chuckie.render.RenderManager()
+        self.raster = raster.RasterTile()
         self._tick = time.ticks_ms()
         self._delta = 0
         buttons.init()
@@ -42,18 +44,20 @@ class Wibble():
     def sound(self):
         pass
 
+    def start_level(self):
+        self.rm.start_level()
+
     def render(self):
         start = time.ticks_ms()
-        if chuckie.render.dirty:
-            ugfx.area(0, 0, 320, 240, ugfx.BLACK)
         self.rm.render()
+        self.raster.raster()
         end = time.ticks_ms()
         self._delta += time.ticks_diff(self._tick, end) - 33
-        print(self._delta, time.ticks_diff(self._tick, start), time.ticks_diff(self._tick, end))
+        print(self._delta, time.ticks_diff(self._tick, start), time.ticks_diff(start, end))
         self._tick = end
         if self._delta < 0:
             time.sleep_ms(-self._delta)
 
 def main():
-    ui = Wibble()
-    chuckie.run_game(ui)
+    ui = TildaUI()
+    chuckie.run.run_game(ui)

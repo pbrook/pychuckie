@@ -17,9 +17,6 @@ def put_pixel(x, y, color):
 tile_buffer = array.array('h', [0]*8)
 
 class RasterTile():
-    def __init__(self):
-        self.w = 8
-
     def raster_sprite(self, sprite, dx, dy):
         color = sprite.color
         offset = (dy * sprite.w) >> 3
@@ -27,7 +24,7 @@ class RasterTile():
         for i in range(sprite.w >> 3):
             mask = sprite.data[offset]
             for n in range(8):
-                if (x >= 0) and (x < self.w):
+                if (x >= 0) and (x < 8):
                     if mask & 0x80:
                         tile_buffer[x] = color
                 mask <<= 1
@@ -35,13 +32,7 @@ class RasterTile():
             offset += 1
         
     def raster_mob(self, mob):
-        if mob.sprite is None:
-            return
         dx = self.x - mob.x
-        if dx <= -self.w:
-            return
-        if dx >= mob.sprite.w:
-            return
         dy = mob.y - self.y
         if dy < 0:
             return
@@ -50,21 +41,43 @@ class RasterTile():
         self.raster_sprite(mob.sprite, dx, dy)
 
     def _flush(self):
+        x = self.x
+        y = self.y
+        ugfx.stream_start(2 * x, 239 - y, 16, 1)
         for n in range(8):
-            put_pixel(self.x + n, self.y, tile_buffer[n])
+            color = tile_buffer[n]
+            ugfx.stream_color(color)
+            ugfx.stream_color(color)
+        ugfx.stream_stop()
 
     def raster(self):
         n = 0
-        for y in range(26):
-            for x in range(20):
-                if g.dirty_tile[n]:
-                    self.raster_tile(x, y)
-                    g.dirty_tile[n] = False
-                n += 1
+        for tilex in range(20):
+            x = tilex << 3
+            self.x = x
+            mobs = None
 
-    def raster_tile(self, tilex, tiley):
-        self.x = tilex << 3
-        self.y = (tiley << 3) | 7
+            n = tilex
+            for y in range(26):
+                if g.dirty_tile[n]:
+                    if mobs is None:
+                        mobs = []
+                        for mob in g.moblist:
+                            if mob.sprite is None:
+                                continue
+                            dx = self.x - mob.x
+                            if dx <= -8:
+                                continue
+                            if dx >= mob.sprite.w:
+                                continue
+                            mobs.append(mob)
+                    self.raster_tile(tilex, y, mobs)
+                    g.dirty_tile[n] = False
+                n += 20
+
+    def raster_tile(self, tilex, tiley, mobs):
+        y = (tiley << 3) | 7
+        self.y = y
         t = g.ls.read_tile(tilex, tiley)
         if (t & chuckie.TILE_LADDER) != 0:
             s = sprites.ladder
@@ -91,7 +104,7 @@ class RasterTile():
                 else:
                     tile_buffer[i] = black
                 mask <<= 1
-            for mob in g.moblist:
+            for mob in mobs:
                 self.raster_mob(mob)
             self._flush()
             self.y -= 1
