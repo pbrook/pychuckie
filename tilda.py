@@ -57,6 +57,8 @@ class TildaUI():
         self._tick = end
         if self._delta < 0:
             time.sleep_ms(-self._delta)
+        elif self._delta > 200:
+            self._delta = 200
 
 def main():
     ui = TildaUI()

@@ -1,0 +1,3 @@
+import tilda
+
+tilda.main()
