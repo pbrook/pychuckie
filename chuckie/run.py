@@ -63,10 +63,15 @@ def run_game(ui):
     g.player_data = PlayerData()
     while True:
         # New level
+        ls = None
+        g.ls = None
+        g.player = None
+        gc.collect()
         ls = LevelState(g.player_data.level)
         g.ls = ls
         g.player = PlayerActor()
         ui.start_level()
+        gc.collect()
 
         while True:
             ui.poll()

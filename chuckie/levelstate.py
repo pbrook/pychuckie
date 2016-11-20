@@ -4,6 +4,8 @@ from .leveldata import leveldata
 from .constants import *
 from . import g
 
+levelmap = [0] * (20 * 25)
+
 class LevelState():
     def __init__(self, current_level):
         self.big_duck = BigDuck(current_level > 7)
@@ -27,7 +29,9 @@ class LevelState():
 
         level = leveldata[current_level % 8]
         self.num_ducks = len(level['duck'])
-        self.levelmap = [0] * (20 * 25)
+        self.levelmap = levelmap
+        for n in range(len(levelmap)):
+            levelmap[n] = 0
 
         for x1, y, x2 in level['wall']:
             for x in range(x1, x2 + 1):
