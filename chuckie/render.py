@@ -151,9 +151,10 @@ class RenderManager():
         self._player_mob = MOB()
         self._lift_mob = [MOB(), MOB()]
 
-    def render(self):
+    def render(self, full=False):
         global dirty
 
+        dirty = (dirty or full)
         if dirty:
             self.background()
         self.hud()

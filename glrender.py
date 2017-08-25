@@ -9,7 +9,9 @@ from OpenGL.GL import shaders
 from OpenGL.GLU import *
 from OpenGL.arrays import vbo
 
+import chuckie
 from chuckie import sprite_base
+from chuckie import g
 
 vertex_code = """
 attribute vec2 position;
@@ -142,4 +144,26 @@ class Renderer():
 
     def render(self, draw):
         glClear(GL_COLOR_BUFFER_BIT)
+        for tilex in range(20):
+            for tiley in range(26):
+                y = (tiley << 3) | 7
+                t = g.ls.read_tile(tilex, tiley)
+                if (t & chuckie.TILE_LADDER) != 0:
+                    s = sprites.ladder
+                elif (t & chuckie.TILE_WALL) != 0:
+                    s = sprites.wall
+                elif (t & chuckie.TILE_EGG) != 0:
+                    s = sprites.egg
+                elif (t & chuckie.TILE_GRAIN) != 0:
+                    s = sprites.grain
+                else:
+                    continue
+                s.render(tilex << 3, y)
+
+        for mob in g.moblist:
+            if mob.sprite is None:
+                continue
+            mob.sprite.render(mob.x, mob.y)
         draw()
+
+import chuckie.sprites as sprites

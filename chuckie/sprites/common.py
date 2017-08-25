@@ -11,7 +11,7 @@ class SpriteColor():
 GREEN = SpriteColor(0, 255, 0)
 PURPLE = SpriteColor(255, 0, 255)
 YELLOW = SpriteColor(255, 255, 0)
-BLUE = SpriteColor(0, 0, 255)
+BLUE = SpriteColor(0, 255, 255)
 BLACK = SpriteColor(0, 0, 0)
 
 all_sprites = []

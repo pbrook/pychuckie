@@ -50,6 +50,8 @@ class SDLUI():
         pass
 
     def render(self):
+        def draw():
+            self.rm.render(True)
         delta = self.next_tick - time.monotonic()
         if delta < -1:
             self.next_tick = time.monotonic()
@@ -57,7 +59,7 @@ class SDLUI():
             if delta > 0:
                 time.sleep(delta)
             self.next_tick += 1.0 / 30
-        self.glr.render(self.rm.render)
+        self.glr.render(draw)
         pygame.display.flip()
 
     def start_level(self):
